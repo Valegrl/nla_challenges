@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <Eigen/Sparse>
+#include <unsupported/Eigen/SparseExtra>
 
 // from https://github.com/nothings/stb/tree/master
 #define STB_IMAGE_IMPLEMENTATION
@@ -249,6 +250,14 @@ int main(int argc, char* argv[]) {
     solution to the linear system A2x = w prescribing a tolerance of 10−9. Report here the
     iteration count and the final residual.
   */
+
+  // Save the matrix A2 and vector w in the .mtx format
+  // Necessary to include <unsupported/Eigen/SparseExtra>
+  // Do not push to the repository the generated files (A2.mtx and w.mtx)
+  std::string matrixA2FileOut("../A2.mtx");
+  Eigen::saveMarket(A2, matrixA2FileOut);
+  std::string vectorWFileOut("../w.mtx");
+  Eigen::saveMarket(w, vectorWFileOut);  
 
   // TODO
 
