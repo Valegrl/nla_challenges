@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <Eigen/Sparse>
 #include <unsupported/Eigen/SparseExtra>
+#include "lis.h"
 
 // from https://github.com/nothings/stb/tree/master
 #define STB_IMAGE_IMPLEMENTATION
@@ -256,14 +257,24 @@ int main(int argc, char* argv[]) {
   // Do not push to the repository the generated files (A2.mtx and w.mtx)
   std::string matrixA2FileOut("../A2.mtx");
   Eigen::saveMarket(A2, matrixA2FileOut);
-  std::string vectorWFileOut("../w.mtx");
-  Eigen::saveMarket(w, vectorWFileOut);  
+  // convert eeigen matrix to lis vector
+    int n = w.size();
+    FILE* out = fopen("w.mtx","w");
+    fprintf(out,"%%%%MatrixMarket vector coordinate real general\n");
+    fprintf(out,"%d\n", n);
+    for (int i=0; i<n; i++) {
+        fprintf(out,"%d %.32f\n", i ,w(i));
+    }
+    fclose(out);
 
   // TODO
 
   /* 9) ******************************************************************************************
     Import the previous approximate solution vector x in Eigen and then convert it into a .png
     image. Upload the resulting file here.
+
+
+
   */
 
   // TODO

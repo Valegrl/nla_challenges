@@ -1,0 +1,7 @@
+#esclude the .mtx files
+*.mtx
+
+#esclude vscode files and folders
+.vscode/
+.vscode/*
+
