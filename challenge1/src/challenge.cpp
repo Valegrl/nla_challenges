@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <Eigen/Sparse>
 #include <unsupported/Eigen/SparseExtra>
+#include <Eigen/IterativeLinearSolvers>
 #include "lis.h"
 
 // from https://github.com/nothings/stb/tree/master
@@ -255,17 +256,18 @@ int main(int argc, char* argv[]) {
   // Save the matrix A2 and vector w in the .mtx format
   // Necessary to include <unsupported/Eigen/SparseExtra>
   // Do not push to the repository the generated files (A2.mtx and w.mtx)
-  std::string matrixA2FileOut("../A2.mtx");
+  std::string matrixA2FileOut("A2.mtx");
   Eigen::saveMarket(A2, matrixA2FileOut);
+
   // convert eeigen matrix to lis vector
-    int n = w.size();
-    FILE* out = fopen("w.mtx","w");
-    fprintf(out,"%%%%MatrixMarket vector coordinate real general\n");
-    fprintf(out,"%d\n", n);
-    for (int i=0; i<n; i++) {
-        fprintf(out,"%d %.32f\n", i ,w(i));
-    }
-    fclose(out);
+  int n = w.size();
+  FILE* out = fopen("w.mtx","w");
+  fprintf(out,"%%%%MatrixMarket vector coordinate real general\n");
+  fprintf(out,"%d\n", n);
+  for (int i=0; i<n; i++) {
+      fprintf(out,"%d %.32f\n", i ,w(i));
+  }
+  fclose(out);
 
   // TODO
 
@@ -424,20 +426,26 @@ int main(int argc, char* argv[]) {
     A4.coeffRef(i,i) += 1.0;
   }
   /*
-     Eigen native CG (IncompleteLUT)
+    Eigen native CG (IncompleteLUT)
     #iterations:     4
     relative residual: 5.30382e-11
+
+    Eigen native BiCG  (IncompleteLUT)
+    #iterations:     2
+    relative residual: 2.46689e-10
+    #iterations:     3
+    relative residual: 8.16343e-17
   */
 
   // Create the identity matrix
-    ConjugateGradient<Eigen::SparseMatrix<double>, Lower, IncompleteLUT<double>> cg;
-    cg.setMaxIterations(1000);
-    cg.setTolerance(1.0e-10);
-    cg.compute(A4);
-    y = cg.solve(w);
-    std::cout << " Eigen native CG" << std::endl;
-    std::cout << "#iterations:     " << cg.iterations() << std::endl;
-    std::cout << "relative residual: " << cg.error()      << std::endl;
+    BiCGSTAB<Eigen::SparseMatrix<double>, IncompleteLUT<double>> BiCG;
+    BiCG.setMaxIterations(1000);
+    BiCG.setTolerance(1.0e-10);
+    BiCG.compute(A4);
+    y = BiCG.solve(w);
+    std::cout << " Eigen native BiCG" << std::endl;
+    std::cout << "#iterations:     " << BiCG.iterations() << std::endl;
+    std::cout << "relative residual: " << BiCG.error()      << std::endl;
 
     y = y * 255.0;
 
