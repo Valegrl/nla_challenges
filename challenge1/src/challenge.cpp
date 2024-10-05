@@ -4,6 +4,8 @@
 #include <Eigen/Sparse>
 #include <unsupported/Eigen/SparseExtra>
 #include <Eigen/IterativeLinearSolvers>
+#include <chrono>
+
 #include "lis.h"
 
 // from https://github.com/nothings/stb/tree/master
@@ -438,14 +440,21 @@ int main(int argc, char* argv[]) {
   */
 
   // Create the identity matrix
-    BiCGSTAB<Eigen::SparseMatrix<double>, IncompleteLUT<double>> BiCG;
+    BiCGSTAB<Eigen::SparseMatrix<double>, IdentityPreconditioner> BiCG;
     BiCG.setMaxIterations(1000);
     BiCG.setTolerance(1.0e-10);
+
+    auto start = std::chrono::high_resolution_clock::now();
     BiCG.compute(A4);
     y = BiCG.solve(w);
+    auto end = std::chrono::high_resolution_clock::now();
+
+    std::chrono::duration<double> elapsed = end - start;
+
     std::cout << " Eigen native BiCG" << std::endl;
     std::cout << "#iterations:     " << BiCG.iterations() << std::endl;
     std::cout << "relative residual: " << BiCG.error()      << std::endl;
+    std::cout << "Computation time: " << elapsed.count() << " seconds" << std::endl;
 
     y = y * 255.0;
 
