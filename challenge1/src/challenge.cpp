@@ -261,7 +261,7 @@ int main(int argc, char* argv[]) {
   std::string matrixA2FileOut("A2.mtx");
   Eigen::saveMarket(A2, matrixA2FileOut);
 
-  // convert eeigen matrix to lis vector
+  // convert eigen matrix to lis vector
   int n = w.size();
   FILE* out = fopen("w.mtx","w");
   fprintf(out,"%%%%MatrixMarket vector coordinate real general\n");
@@ -271,20 +271,9 @@ int main(int argc, char* argv[]) {
   }
   fclose(out);
 
-  // TODO
-
   /* 9) ******************************************************************************************
     Import the previous approximate solution vector x in Eigen and then convert it into a .png
     image. Upload the resulting file here.
-
-    GMRES: number of iterations = 24
-    GMRES:   double             = 24
-    GMRES:   quad               = 0
-    GMRES: elapsed time         = 2.607683e-01 sec.
-    GMRES:   preconditioner     = 1.236711e-01 sec.
-    GMRES:     matrix creation  = 5.210000e-07 sec.
-    GMRES:   linear solver      = 1.370972e-01 sec.
-    GMRES: relative residual    = 6.904765e-10
 
   */
 
@@ -332,9 +321,6 @@ int main(int argc, char* argv[]) {
     std::cerr << "Error: Could not save edge detected image" << std::endl;
     return 1;
   }
-
-
-  // TODO
   
   /* 10) *****************************************************************************************
     Write the convolution operation corresponding to the detection kernel Hlap as a matrix
@@ -427,45 +413,38 @@ int main(int argc, char* argv[]) {
    for (int i = 0; i < width*height; ++i) {
     A4.coeffRef(i,i) += 1.0;
   }
-  /*
-    Eigen native CG (IncompleteLUT)
-    #iterations:     4
-    relative residual: 5.30382e-11
-
-    Eigen native BiCG  (IncompleteLUT)
-    #iterations:     2
-    relative residual: 2.46689e-10
-    #iterations:     3
-    relative residual: 8.16343e-17
-  */
 
   // Create the identity matrix
-    BiCGSTAB<Eigen::SparseMatrix<double>, IdentityPreconditioner> BiCG;
-    BiCG.setMaxIterations(1000);
-    BiCG.setTolerance(1.0e-10);
+  BiCGSTAB<Eigen::SparseMatrix<double>, IdentityPreconditioner> BiCG;
+  BiCG.setMaxIterations(1000);
+  BiCG.setTolerance(1.0e-10);
 
-    auto start = std::chrono::high_resolution_clock::now();
-    BiCG.compute(A4);
-    y = BiCG.solve(w);
-    auto end = std::chrono::high_resolution_clock::now();
+  auto start = std::chrono::high_resolution_clock::now();
+  BiCG.compute(A4);
+  y = BiCG.solve(w);
+  auto end = std::chrono::high_resolution_clock::now();
 
-    std::chrono::duration<double> elapsed = end - start;
+  std::chrono::duration<double> elapsed = end - start;
 
-    std::cout << " Eigen native BiCG" << std::endl;
-    std::cout << "#iterations:     " << BiCG.iterations() << std::endl;
-    std::cout << "relative residual: " << BiCG.error()      << std::endl;
-    std::cout << "Computation time: " << elapsed.count() << " seconds" << std::endl;
+  std::cout << " Eigen native BiCG" << std::endl;
+  std::cout << "#iterations:     " << BiCG.iterations() << std::endl;
+  std::cout << "relative residual: " << BiCG.error()      << std::endl;
+  std::cout << "Computation time: " << elapsed.count() << " seconds" << std::endl;
 
-    y = y * 255.0;
+  /* 13) *****************************************************************************************
+    Convert the image stored in the vector y into a .png image and upload it.
+  */
 
-    MatrixXd second_sol_image_matrix = MatrixXd::Zero(height, width);
-    for (int i = 0; i < height; ++i) {
-      for (int j = 0; j < width; ++j) {
-        int index = i * width + j;
-        double value = std::clamp(y(index), 0.0, 255.0);
-        second_sol_image_matrix(i, j) = value;
-      } 
-    }
+  y = y * 255.0;
+
+  MatrixXd second_sol_image_matrix = MatrixXd::Zero(height, width);
+  for (int i = 0; i < height; ++i) {
+    for (int j = 0; j < width; ++j) {
+      int index = i * width + j;
+      double value = std::clamp(y(index), 0.0, 255.0);
+      second_sol_image_matrix(i, j) = value;
+    } 
+  }
 
   // Convert the matrix to a char matrix to save the image
   Matrix<unsigned char, Dynamic, Dynamic, RowMajor> second_sol_image_char(height, width);
@@ -481,22 +460,6 @@ int main(int argc, char* argv[]) {
     std::cerr << "Error: Could not save edge detected image" << std::endl;
     return 1;
   }
-  
-  // TODO
-
-  /* 13) *****************************************************************************************
-    Convert the image stored in the vector y into a .png image and upload it.
-  */
-
-  
-
-  // TODO
-
-  /* 14) *****************************************************************************************
-    Comment the obtained results.
-  */
-
-  // TODO
 
   return 0;
 }
